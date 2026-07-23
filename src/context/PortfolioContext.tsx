@@ -87,11 +87,13 @@ interface PortfolioContextType {
   
   // Bookings
   addBooking: (booking: Omit<BookingItem, 'id' | 'createdAt' | 'status'>) => void;
+  updateBooking: (id: string, booking: Partial<BookingItem>) => void;
   updateBookingStatus: (id: string, status: BookingItem['status']) => void;
   deleteBooking: (id: string) => void;
   
   // Testimonials
   addTestimonial: (test: Omit<TestimonialItem, 'id' | 'createdAt'>) => void;
+  updateTestimonial: (id: string, test: Partial<TestimonialItem>) => void;
   deleteTestimonial: (id: string) => void;
   
   // Messages
@@ -668,6 +670,18 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const updateBooking = async (id: string, bookingData: Partial<BookingItem>) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, ...bookingData } : b))
+    );
+
+    try {
+      await updateDoc(doc(db, 'bookings', id), bookingData);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `bookings/${id}`);
+    }
+  };
+
   const updateBookingStatus = async (id: string, status: BookingItem['status']) => {
     setBookings((prev) =>
       prev.map((b) => (b.id === id ? { ...b, status } : b))
@@ -704,6 +718,18 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       await setDoc(doc(db, 'testimonials', newTest.id), newTest);
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, `testimonials/${newTest.id}`);
+    }
+  };
+
+  const updateTestimonial = async (id: string, testData: Partial<TestimonialItem>) => {
+    setTestimonials((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...testData } : t))
+    );
+
+    try {
+      await updateDoc(doc(db, 'testimonials', id), testData);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `testimonials/${id}`);
     }
   };
 
@@ -834,9 +860,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         deleteCategory,
         reorderCategories,
         addBooking,
+        updateBooking,
         updateBookingStatus,
         deleteBooking,
         addTestimonial,
+        updateTestimonial,
         deleteTestimonial,
         addMessage,
         updateMessageStatus,
