@@ -24,7 +24,9 @@ export const AddEditProjectModal: React.FC = () => {
     addProject,
     updateProject,
     categories,
-    addCategory
+    addCategory,
+    setViewMode,
+    setSelectedCategory
   } = usePortfolio();
 
   // Preset Tags
@@ -91,17 +93,70 @@ export const AddEditProjectModal: React.FC = () => {
   const [metaDescription, setMetaDescription] = useState('');
   const [keywordsInput, setKeywordsInput] = useState('');
 
-  // Handle direct photo upload for cover image
-  const handleCoverFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Helper to compress image files via canvas to keep base64 strings lightweight & avoid quota storage issues
+  const compressImageFile = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.82): Promise<string> => {
+    return new Promise((resolve) => {
+      if (file.type.includes('svg') || file.size < 80 * 1024) {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string) || '');
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedDataUrl);
+          } else {
+            resolve((event.target?.result as string) || '');
+          }
+        };
+        img.onerror = () => resolve((event.target?.result as string) || '');
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle direct photo upload for cover image with auto compression
+  const handleCoverFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setImageUrl(result);
-        setThumbnail(result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedBase64 = await compressImageFile(file);
+        if (compressedBase64) {
+          setImageUrl(compressedBase64);
+          setThumbnail(compressedBase64);
+        }
+      } catch (err) {
+        console.error('Image compression error:', err);
+      }
     }
   };
 
@@ -225,6 +280,8 @@ export const AddEditProjectModal: React.FC = () => {
       calcMediaType = 'image';
     }
 
+    const isPublished = status === 'published';
+
     const projectData = {
       title,
       shortDescription: shortDescription || title,
@@ -244,8 +301,8 @@ export const AddEditProjectModal: React.FC = () => {
       duration,
       completionDate,
       featured,
-      homepage,
-      public: isPublic,
+      homepage: isPublished ? true : homepage,
+      public: isPublished ? true : isPublic,
       acceptSimilar,
       seoUrl: seoUrl || title.toLowerCase().replace(/\s+/g, '-'),
       metaDescription: metaDescription || shortDescription,
@@ -260,6 +317,11 @@ export const AddEditProjectModal: React.FC = () => {
     }
 
     closeAddEditModal();
+
+    if (isPublished) {
+      setSelectedCategory('All');
+      setViewMode('public');
+    }
   };
 
   return (

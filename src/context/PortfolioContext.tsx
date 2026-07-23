@@ -170,14 +170,62 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState<boolean>(false);
   const [projectToEdit, setProjectToEdit] = useState<PortfolioItem | null>(null);
 
-  // Sync to localStorage
-  useEffect(() => { localStorage.setItem('jhvz_portfolio', JSON.stringify(portfolio)); }, [portfolio]);
-  useEffect(() => { localStorage.setItem('jhvz_categories', JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem('jhvz_bookings', JSON.stringify(bookings)); }, [bookings]);
-  useEffect(() => { localStorage.setItem('jhvz_testimonials', JSON.stringify(testimonials)); }, [testimonials]);
-  useEffect(() => { localStorage.setItem('jhvz_messages', JSON.stringify(messages)); }, [messages]);
-  useEffect(() => { localStorage.setItem('jhvz_content', JSON.stringify(websiteContent)); }, [websiteContent]);
-  useEffect(() => { localStorage.setItem('jhvz_admin_pass', adminPassword); }, [adminPassword]);
+  // Sync to localStorage safely with error catching
+  useEffect(() => {
+    try {
+      localStorage.setItem('jhvz_portfolio', JSON.stringify(portfolio));
+    } catch (e) {
+      console.warn('LocalStorage save quota exceeded for portfolio:', e);
+    }
+  }, [portfolio]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jhvz_categories', JSON.stringify(categories));
+    } catch (e) {
+      console.warn('LocalStorage save error for categories:', e);
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jhvz_bookings', JSON.stringify(bookings));
+    } catch (e) {
+      console.warn('LocalStorage save error for bookings:', e);
+    }
+  }, [bookings]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jhvz_testimonials', JSON.stringify(testimonials));
+    } catch (e) {
+      console.warn('LocalStorage save error for testimonials:', e);
+    }
+  }, [testimonials]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jhvz_messages', JSON.stringify(messages));
+    } catch (e) {
+      console.warn('LocalStorage save error for messages:', e);
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jhvz_content', JSON.stringify(websiteContent));
+    } catch (e) {
+      console.warn('LocalStorage save error for websiteContent:', e);
+    }
+  }, [websiteContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('jhvz_admin_pass', adminPassword);
+    } catch (e) {
+      console.warn('LocalStorage save error for adminPassword:', e);
+    }
+  }, [adminPassword]);
 
   // URL route handling for /admin
   const setViewMode = (mode: 'public' | 'admin') => {

@@ -9,6 +9,7 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { ProjectLightbox } from './components/ProjectLightbox';
 import { BookingModal } from './components/BookingModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './components/admin/AdminDashboard';
@@ -66,8 +67,10 @@ const MainContent: React.FC = () => {
 
 export default function App() {
   return (
-    <PortfolioProvider>
-      <MainContent />
-    </PortfolioProvider>
+    <ErrorBoundary>
+      <PortfolioProvider>
+        <MainContent />
+      </PortfolioProvider>
+    </ErrorBoundary>
   );
 }
