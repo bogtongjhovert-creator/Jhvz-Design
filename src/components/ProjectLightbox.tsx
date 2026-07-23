@@ -260,6 +260,18 @@ export const ProjectLightbox: React.FC = () => {
 
             {/* Bottom Actions */}
             <div className="space-y-3 pt-4 border-t border-white/10">
+              {project.externalLink && (
+                <a
+                  href={project.externalLink.startsWith('http') ? project.externalLink : `https://${project.externalLink}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full glass-panel glass-panel-hover text-indigo-300 hover:text-white font-bold text-xs py-3 rounded-xl border border-indigo-500/40 flex items-center justify-center gap-2 transition-all"
+                >
+                  <ExternalLink className="w-4 h-4 text-indigo-400" />
+                  <span>Open Attached Showcase / Proof Link</span>
+                </a>
+              )}
+
               {project.acceptSimilar && (
                 <button
                   onClick={() => {

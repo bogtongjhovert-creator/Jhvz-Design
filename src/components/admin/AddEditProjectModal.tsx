@@ -212,6 +212,15 @@ export const AddEditProjectModal: React.FC = () => {
 
     const keywordsArray = keywordsInput.split(',').map(k => k.trim()).filter(Boolean);
 
+    let calcMediaType: MediaType = 'image';
+    if (videoUrl.trim()) {
+      calcMediaType = 'video';
+    } else if (externalLink.trim() && !imageUrl.trim()) {
+      calcMediaType = 'link';
+    } else {
+      calcMediaType = 'image';
+    }
+
     const projectData = {
       title,
       shortDescription: shortDescription || title,
@@ -221,10 +230,10 @@ export const AddEditProjectModal: React.FC = () => {
       designer,
       tags,
       category,
-      mediaType,
-      imageUrl: mediaType === 'image' ? imageUrl : undefined,
-      videoUrl: mediaType === 'video' ? videoUrl : undefined,
-      externalLink: mediaType === 'link' ? externalLink : undefined,
+      mediaType: calcMediaType,
+      imageUrl: imageUrl.trim() || undefined,
+      videoUrl: videoUrl.trim() || undefined,
+      externalLink: externalLink.trim() || undefined,
       thumbnail: thumbnail || imageUrl || samplePresets[0].url,
       additionalGallery,
       softwareUsed,
@@ -442,120 +451,95 @@ export const AddEditProjectModal: React.FC = () => {
             )}
           </div>
 
-          {/* Section 3: Media Upload */}
-          <div className="space-y-4 pt-4 border-t border-white/10">
-            <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
-              Media Upload Method
-            </h4>
-
-            {/* Radio options */}
-            <div className="flex flex-wrap items-center gap-6 glass-panel p-3.5 rounded-xl">
-              <label className="flex items-center gap-2 cursor-pointer font-semibold text-white">
-                <input
-                  type="radio"
-                  name="mediaType"
-                  value="image"
-                  checked={mediaType === 'image'}
-                  onChange={() => setMediaType('image')}
-                  className="accent-indigo-500"
-                />
-                <ImageIcon className="w-4 h-4 text-indigo-400" />
-                <span>Upload Image (JPG, PNG, WEBP, SVG)</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer font-semibold text-white">
-                <input
-                  type="radio"
-                  name="mediaType"
-                  value="video"
-                  checked={mediaType === 'video'}
-                  onChange={() => setMediaType('video')}
-                  className="accent-indigo-500"
-                />
-                <Video className="w-4 h-4 text-indigo-400" />
-                <span>Upload Video (MP4, MOV, WEBM)</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer font-semibold text-white">
-                <input
-                  type="radio"
-                  name="mediaType"
-                  value="link"
-                  checked={mediaType === 'link'}
-                  onChange={() => setMediaType('link')}
-                  className="accent-indigo-500"
-                />
-                <LinkIcon className="w-4 h-4 text-indigo-400" />
-                <span>Attach External Link</span>
-              </label>
+          {/* Section 3: Media Attachments (Image, Video & External Links) */}
+          <div className="space-y-6 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Upload className="w-4 h-4" />
+                <span>Media & Showcase Attachments</span>
+              </h4>
+              <span className="text-[11px] text-white/50 font-normal">Attach any or all formats below (No restriction)</span>
             </div>
 
-            {/* Media URL or External Link Details */}
-            {mediaType === 'image' && (
-              <div className="space-y-3">
-                <label className="block text-white/60 font-semibold">Image URL or Preset Selection</label>
+            <div className="grid grid-cols-1 gap-4">
+              {/* 1. Main Cover Image */}
+              <div className="glass-panel p-4 rounded-2xl space-y-3 border border-white/10">
+                <label className="block text-white font-semibold flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-indigo-400" />
+                  <span>1. Main Cover / Featured Image URL</span>
+                </label>
                 <input
                   type="text"
-                  placeholder="Paste Image URL or select preset below..."
+                  placeholder="Paste Image URL or pick a sample preset below..."
                   value={imageUrl}
                   onChange={(e) => {
                     setImageUrl(e.target.value);
-                    setThumbnail(e.target.value);
+                    if (!thumbnail || thumbnail === imageUrl) {
+                      setThumbnail(e.target.value);
+                    }
                   }}
                   className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white focus:border-indigo-500/80 outline-none"
                 />
 
                 {/* Preset Image Selection Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {samplePresets.map((preset, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        setImageUrl(preset.url);
-                        setThumbnail(preset.url);
-                      }}
-                      className={`cursor-pointer rounded-xl overflow-hidden border-2 relative h-16 group ${
-                        imageUrl === preset.url ? 'border-indigo-400 scale-[1.02]' : 'border-white/10 opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/60 p-1 flex items-end">
-                        <span className="text-[10px] text-white font-bold line-clamp-1">{preset.label}</span>
+                <div className="pt-1">
+                  <span className="text-[10px] text-white/40 block mb-2 font-medium uppercase tracking-wider">Or pick a sample preset image:</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                    {samplePresets.map((preset, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => {
+                          setImageUrl(preset.url);
+                          setThumbnail(preset.url);
+                        }}
+                        className={`cursor-pointer rounded-xl overflow-hidden border-2 relative h-16 group transition-all ${
+                          imageUrl === preset.url ? 'border-indigo-400 scale-[1.02]' : 'border-white/10 opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/60 p-1 flex items-end">
+                          <span className="text-[9px] text-white font-bold line-clamp-1">{preset.label}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
 
-            {mediaType === 'video' && (
-              <div className="space-y-3">
-                <label className="block text-white/60 font-semibold">Video URL (MP4 / MOV / WEBM)</label>
+              {/* 2. Video Attachment */}
+              <div className="glass-panel p-4 rounded-2xl space-y-2 border border-white/10">
+                <label className="block text-white font-semibold flex items-center gap-2">
+                  <Video className="w-4 h-4 text-indigo-400" />
+                  <span>2. Video Link (MP4, MOV, WEBM)</span>
+                </label>
                 <input
                   type="text"
-                  placeholder="https://example.com/video.mp4"
+                  placeholder="https://example.com/video.mp4 (Optional)"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                   className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white focus:border-indigo-500/80 outline-none"
                 />
+                <span className="text-[10px] text-white/40 block">Attach a direct video URL for motion graphics, video editing, or reel showcases.</span>
               </div>
-            )}
 
-            {mediaType === 'link' && (
-              <div className="space-y-3">
-                <label className="block text-white/60 font-semibold">External Showcase Link</label>
+              {/* 3. External Showcase Link */}
+              <div className="glass-panel p-4 rounded-2xl space-y-2 border border-white/10">
+                <label className="block text-white font-semibold flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4 text-indigo-400" />
+                  <span>3. External Showcase / Design Proof Link</span>
+                </label>
                 <input
                   type="text"
-                  placeholder="Paste Behance, Dribbble, Google Drive, YouTube, TikTok, Figma URL..."
+                  placeholder="Paste Behance, Dribbble, Figma, Canva, Google Drive, YouTube link (Optional)"
                   value={externalLink}
                   onChange={(e) => setExternalLink(e.target.value)}
                   className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white focus:border-indigo-500/80 outline-none"
                 />
                 <span className="text-[10px] text-white/40 block">
-                  Supports automatic preview card for Behance, Dribbble, YouTube, Google Drive, Vimeo, TikTok, etc.
+                  Clickable external link for clients or viewers to inspect Figma prototypes, Behance case studies, or Google Drive proofs.
                 </span>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Section 4: Featured Cover Image & Additional Gallery */}
