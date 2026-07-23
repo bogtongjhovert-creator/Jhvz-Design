@@ -20,6 +20,7 @@ import { BookingsManager } from './components/admin/BookingsManager';
 import { TestimonialsManager } from './components/admin/TestimonialsManager';
 import { MessagesManager } from './components/admin/MessagesManager';
 import { WebsiteContentManager } from './components/admin/WebsiteContentManager';
+import { TrashManager } from './components/admin/TrashManager';
 import { AnalyticsView } from './components/admin/AnalyticsView';
 import { SettingsView } from './components/admin/SettingsView';
 import { AdminLoginModal } from './components/admin/AdminLoginModal';
@@ -52,6 +53,7 @@ const MainContent: React.FC = () => {
           {activeAdminTab === 'testimonials' && <TestimonialsManager />}
           {activeAdminTab === 'messages' && <MessagesManager />}
           {activeAdminTab === 'content' && <WebsiteContentManager />}
+          {activeAdminTab === 'trash' && <TrashManager />}
           {activeAdminTab === 'analytics' && <AnalyticsView />}
           {activeAdminTab === 'settings' && <SettingsView />}
         </AdminLayout>

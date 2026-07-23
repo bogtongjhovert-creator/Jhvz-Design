@@ -33,6 +33,8 @@ export interface PortfolioItem {
   views: number;
   likes: number;
   status: ProjectStatus;
+  isTrash?: boolean;
+  trashedAt?: string;
 }
 
 export interface CategoryItem {
@@ -57,6 +59,8 @@ export interface BookingItem {
   referencedProjectTitle?: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   createdAt: string;
+  isTrash?: boolean;
+  trashedAt?: string;
 }
 
 export interface TestimonialItem {
@@ -69,6 +73,8 @@ export interface TestimonialItem {
   avatar: string;
   featured: boolean;
   createdAt: string;
+  isTrash?: boolean;
+  trashedAt?: string;
 }
 
 export interface MessageItem {
@@ -80,6 +86,8 @@ export interface MessageItem {
   designProofUrl?: string;
   date: string;
   status: 'unread' | 'read' | 'archived';
+  isTrash?: boolean;
+  trashedAt?: string;
 }
 
 export interface ServiceItem {

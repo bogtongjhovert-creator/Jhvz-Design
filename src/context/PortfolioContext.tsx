@@ -6,6 +6,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  getDoc,
   getDocFromServer
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
@@ -28,6 +29,15 @@ import {
   INITIAL_WEBSITE_CONTENT
 } from '../data/initialData';
 
+export interface TrashedItem {
+  id: string;
+  title: string;
+  type: 'project' | 'booking' | 'testimonial' | 'message';
+  collectionName: 'projects' | 'bookings' | 'testimonials' | 'messages';
+  trashedAt: string;
+  originalData: PortfolioItem | BookingItem | TestimonialItem | MessageItem;
+}
+
 interface PortfolioContextType {
   // State
   portfolio: PortfolioItem[];
@@ -37,6 +47,7 @@ interface PortfolioContextType {
   messages: MessageItem[];
   services: ServiceItem[];
   websiteContent: WebsiteContent;
+  trashItems: TrashedItem[];
   
   viewMode: 'public' | 'admin';
   isAdminAuthenticated: boolean;
@@ -103,6 +114,11 @@ interface PortfolioContextType {
   
   // Content
   updateWebsiteContent: (content: Partial<WebsiteContent>) => void;
+
+  // Recycle Bin / Trash Actions
+  restoreFromTrash: (collectionName: 'projects' | 'bookings' | 'testimonials' | 'messages', id: string) => void;
+  permanentlyDelete: (collectionName: 'projects' | 'bookings' | 'testimonials' | 'messages', id: string) => void;
+  emptyTrash: () => void;
   
   // System
   resetAllData: () => void;
@@ -168,6 +184,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
+  // Raw states from Firestore (includes trashed items)
+  const [rawProjects, setRawProjects] = useState<PortfolioItem[]>([]);
+  const [rawBookings, setRawBookings] = useState<BookingItem[]>([]);
+  const [rawTestimonials, setRawTestimonials] = useState<TestimonialItem[]>([]);
+  const [rawMessages, setRawMessages] = useState<MessageItem[]>([]);
+
   // UI state
   const [viewMode, setViewModeState] = useState<'public' | 'admin'>('public');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
@@ -223,43 +245,63 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try { localStorage.setItem('jhvz_content', JSON.stringify(websiteContent)); } catch (e) { console.warn(e); }
   }, [websiteContent]);
 
-  // Firestore connection validation on startup
+  // Firestore connection validation & system initialization check
   useEffect(() => {
-    const testFirestore = async () => {
+    const initDatabaseSystem = async () => {
       try {
-        await getDocFromServer(doc(db, 'content', 'main'));
-      } catch (err) {
-        if (err instanceof Error && err.message.includes('offline')) {
-          console.warn('Firestore is currently offline or connecting...');
+        const sysDocRef = doc(db, 'metadata', 'system');
+        const sysDocSnap = await getDoc(sysDocRef);
+
+        if (!sysDocSnap.exists()) {
+          console.log('Initializing database seed records in Firestore for the first time...');
+          
+          // Seed Projects
+          for (const item of INITIAL_PORTFOLIO) {
+            await setDoc(doc(db, 'projects', item.id), item);
+          }
+          // Seed Categories
+          for (const cat of INITIAL_CATEGORIES) {
+            await setDoc(doc(db, 'categories', cat.id), cat);
+          }
+          // Seed Bookings
+          for (const b of INITIAL_BOOKINGS) {
+            await setDoc(doc(db, 'bookings', b.id), b);
+          }
+          // Seed Messages
+          for (const m of INITIAL_MESSAGES) {
+            await setDoc(doc(db, 'messages', m.id), m);
+          }
+          // Seed Testimonials
+          for (const t of INITIAL_TESTIMONIALS) {
+            await setDoc(doc(db, 'testimonials', t.id), t);
+          }
+          // Seed Content
+          await setDoc(doc(db, 'content', 'main'), INITIAL_WEBSITE_CONTENT);
+
+          // Mark database system as initialized so deleted items will NEVER be re-seeded!
+          await setDoc(sysDocRef, { initialized: true, initializedAt: new Date().toISOString() });
+          console.log('Database system initialized successfully.');
         }
+      } catch (err) {
+        console.warn('System initialization check error:', err);
       }
     };
-    testFirestore();
+
+    initDatabaseSystem();
   }, []);
 
-  // Real-time Firestore sync
+  // Real-time Firestore sync listeners
   useEffect(() => {
     setIsSyncing(true);
 
     // 1. Sync Projects
     const unsubProjects = onSnapshot(
       collection(db, 'projects'),
-      async (snapshot) => {
-        if (snapshot.empty) {
-          // Seed initial projects into Firestore if empty
-          for (const item of INITIAL_PORTFOLIO) {
-            try {
-              await setDoc(doc(db, 'projects', item.id), item);
-            } catch (e) {
-              console.warn('Seeding project failed:', e);
-            }
-          }
-        } else {
-          const items: PortfolioItem[] = snapshot.docs.map((d) => d.data() as PortfolioItem);
-          // Sort by updatedDate or createdDate descending
-          items.sort((a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime());
-          setPortfolio(items);
-        }
+      (snapshot) => {
+        const items: PortfolioItem[] = snapshot.docs.map((d) => d.data() as PortfolioItem);
+        items.sort((a, b) => new Date(b.createdDate || 0).getTime() - new Date(a.createdDate || 0).getTime());
+        setRawProjects(items);
+        setPortfolio(items.filter(p => !p.isTrash));
         setIsSyncing(false);
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'projects')
@@ -268,41 +310,22 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // 2. Sync Categories
     const unsubCategories = onSnapshot(
       collection(db, 'categories'),
-      async (snapshot) => {
-        if (snapshot.empty) {
-          for (const cat of INITIAL_CATEGORIES) {
-            try {
-              await setDoc(doc(db, 'categories', cat.id), cat);
-            } catch (e) {
-              console.warn('Seeding category failed:', e);
-            }
-          }
-        } else {
-          const items: CategoryItem[] = snapshot.docs.map((d) => d.data() as CategoryItem);
-          items.sort((a, b) => (a.order || 0) - (b.order || 0));
-          setCategories(items);
-        }
+      (snapshot) => {
+        const items: CategoryItem[] = snapshot.docs.map((d) => d.data() as CategoryItem);
+        items.sort((a, b) => (a.order || 0) - (b.order || 0));
+        setCategories(items);
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'categories')
     );
 
-    // 3. Sync Bookings (Real-time client bookings across all devices!)
+    // 3. Sync Bookings
     const unsubBookings = onSnapshot(
       collection(db, 'bookings'),
-      async (snapshot) => {
-        if (snapshot.empty) {
-          for (const b of INITIAL_BOOKINGS) {
-            try {
-              await setDoc(doc(db, 'bookings', b.id), b);
-            } catch (e) {
-              console.warn('Seeding booking failed:', e);
-            }
-          }
-        } else {
-          const items: BookingItem[] = snapshot.docs.map((d) => d.data() as BookingItem);
-          items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-          setBookings(items);
-        }
+      (snapshot) => {
+        const items: BookingItem[] = snapshot.docs.map((d) => d.data() as BookingItem);
+        items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        setRawBookings(items);
+        setBookings(items.filter(b => !b.isTrash));
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'bookings')
     );
@@ -310,20 +333,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // 4. Sync Messages
     const unsubMessages = onSnapshot(
       collection(db, 'messages'),
-      async (snapshot) => {
-        if (snapshot.empty) {
-          for (const m of INITIAL_MESSAGES) {
-            try {
-              await setDoc(doc(db, 'messages', m.id), m);
-            } catch (e) {
-              console.warn('Seeding message failed:', e);
-            }
-          }
-        } else {
-          const items: MessageItem[] = snapshot.docs.map((d) => d.data() as MessageItem);
-          items.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
-          setMessages(items);
-        }
+      (snapshot) => {
+        const items: MessageItem[] = snapshot.docs.map((d) => d.data() as MessageItem);
+        items.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+        setRawMessages(items);
+        setMessages(items.filter(m => !m.isTrash));
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'messages')
     );
@@ -331,19 +345,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // 5. Sync Testimonials
     const unsubTestimonials = onSnapshot(
       collection(db, 'testimonials'),
-      async (snapshot) => {
-        if (snapshot.empty) {
-          for (const t of INITIAL_TESTIMONIALS) {
-            try {
-              await setDoc(doc(db, 'testimonials', t.id), t);
-            } catch (e) {
-              console.warn('Seeding testimonial failed:', e);
-            }
-          }
-        } else {
-          const items: TestimonialItem[] = snapshot.docs.map((d) => d.data() as TestimonialItem);
-          setTestimonials(items);
-        }
+      (snapshot) => {
+        const items: TestimonialItem[] = snapshot.docs.map((d) => d.data() as TestimonialItem);
+        setRawTestimonials(items);
+        setTestimonials(items.filter(t => !t.isTrash));
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'testimonials')
     );
@@ -351,14 +356,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     // 6. Sync Website Content
     const unsubContent = onSnapshot(
       doc(db, 'content', 'main'),
-      async (docSnap) => {
-        if (!docSnap.exists()) {
-          try {
-            await setDoc(doc(db, 'content', 'main'), INITIAL_WEBSITE_CONTENT);
-          } catch (e) {
-            console.warn('Seeding content failed:', e);
-          }
-        } else {
+      (docSnap) => {
+        if (docSnap.exists()) {
           setWebsiteContent(docSnap.data() as WebsiteContent);
         }
       },
@@ -374,6 +373,42 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       unsubContent();
     };
   }, []);
+
+  // Compute Trash Items across all collections
+  const trashItems: TrashedItem[] = [
+    ...rawProjects.filter(p => p.isTrash).map(p => ({
+      id: p.id,
+      title: p.title,
+      type: 'project' as const,
+      collectionName: 'projects' as const,
+      trashedAt: p.trashedAt || 'Recently',
+      originalData: p
+    })),
+    ...rawBookings.filter(b => b.isTrash).map(b => ({
+      id: b.id,
+      title: `Booking: ${b.clientName} (${b.serviceType})`,
+      type: 'booking' as const,
+      collectionName: 'bookings' as const,
+      trashedAt: b.trashedAt || 'Recently',
+      originalData: b
+    })),
+    ...rawTestimonials.filter(t => t.isTrash).map(t => ({
+      id: t.id,
+      title: `Review: ${t.clientName} (${t.company})`,
+      type: 'testimonial' as const,
+      collectionName: 'testimonials' as const,
+      trashedAt: t.trashedAt || 'Recently',
+      originalData: t
+    })),
+    ...rawMessages.filter(m => m.isTrash).map(m => ({
+      id: m.id,
+      title: `Message: ${m.name} - ${m.subject}`,
+      type: 'message' as const,
+      collectionName: 'messages' as const,
+      trashedAt: m.trashedAt || 'Recently',
+      originalData: m
+    }))
+  ];
 
   // Navigation / View mode
   const setViewMode = (mode: 'public' | 'admin') => {
@@ -469,7 +504,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setProjectToEdit(null);
   };
 
-  // CRUD Portfolio (Real-time Firestore persistence)
+  // CRUD Portfolio
   const addProject = async (projectData: Omit<PortfolioItem, 'id' | 'createdDate' | 'updatedDate' | 'views' | 'likes'>) => {
     const today = new Date().toISOString().split('T')[0];
     const newProject: PortfolioItem = {
@@ -478,7 +513,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       createdDate: today,
       updatedDate: today,
       views: 1,
-      likes: 0
+      likes: 0,
+      isTrash: false
     };
 
     setPortfolio((prev) => [newProject, ...prev]);
@@ -489,7 +525,6 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       handleFirestoreError(error, OperationType.WRITE, `projects/${newProject.id}`);
     }
 
-    // Ensure category exists
     if (projectData.category) {
       const exists = categories.some(c => c.name.toLowerCase() === projectData.category.toLowerCase());
       if (!exists) {
@@ -513,14 +548,16 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Soft delete project (Move to Recycle Bin)
   const deleteProject = async (id: string) => {
+    const nowStr = new Date().toLocaleString();
     setPortfolio((prev) => prev.filter((item) => item.id !== id));
     if (selectedProjectForModal?.id === id) setSelectedProjectForModal(null);
 
     try {
-      await deleteDoc(doc(db, 'projects', id));
+      await updateDoc(doc(db, 'projects', id), { isTrash: true, trashedAt: nowStr });
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `projects/${id}`);
+      handleFirestoreError(error, OperationType.UPDATE, `projects/${id}`);
     }
   };
 
@@ -540,7 +577,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       updatedDate: today,
       views: 0,
       likes: 0,
-      status: 'draft'
+      status: 'draft',
+      isTrash: false
     };
 
     setPortfolio((prev) => [copy, ...prev]);
@@ -652,13 +690,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   };
 
-  // Bookings (Saves directly to Firestore for multi-device live sync!)
+  // Bookings
   const addBooking = async (bookingData: Omit<BookingItem, 'id' | 'createdAt' | 'status'>) => {
     const newBooking: BookingItem = {
       ...bookingData,
       id: 'book-' + Date.now(),
       status: 'pending',
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16)
+      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      isTrash: false
     };
 
     setBookings((prev) => [newBooking, ...prev]);
@@ -694,13 +733,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Soft delete booking (Move to Recycle Bin)
   const deleteBooking = async (id: string) => {
+    const nowStr = new Date().toLocaleString();
     setBookings((prev) => prev.filter((b) => b.id !== id));
 
     try {
-      await deleteDoc(doc(db, 'bookings', id));
+      await updateDoc(doc(db, 'bookings', id), { isTrash: true, trashedAt: nowStr });
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `bookings/${id}`);
+      handleFirestoreError(error, OperationType.UPDATE, `bookings/${id}`);
     }
   };
 
@@ -709,7 +750,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const newTest: TestimonialItem = {
       ...testData,
       id: 'test-' + Date.now(),
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString().split('T')[0],
+      isTrash: false
     };
 
     setTestimonials((prev) => [newTest, ...prev]);
@@ -733,13 +775,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Soft delete testimonial (Move to Recycle Bin)
   const deleteTestimonial = async (id: string) => {
+    const nowStr = new Date().toLocaleString();
     setTestimonials((prev) => prev.filter((t) => t.id !== id));
 
     try {
-      await deleteDoc(doc(db, 'testimonials', id));
+      await updateDoc(doc(db, 'testimonials', id), { isTrash: true, trashedAt: nowStr });
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `testimonials/${id}`);
+      handleFirestoreError(error, OperationType.UPDATE, `testimonials/${id}`);
     }
   };
 
@@ -749,7 +793,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       ...msgData,
       id: 'msg-' + Date.now(),
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      status: 'unread'
+      status: 'unread',
+      isTrash: false
     };
 
     setMessages((prev) => [newMsg, ...prev]);
@@ -773,13 +818,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Soft delete message (Move to Recycle Bin)
   const deleteMessage = async (id: string) => {
+    const nowStr = new Date().toLocaleString();
     setMessages((prev) => prev.filter((m) => m.id !== id));
 
     try {
-      await deleteDoc(doc(db, 'messages', id));
+      await updateDoc(doc(db, 'messages', id), { isTrash: true, trashedAt: nowStr });
     } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, `messages/${id}`);
+      handleFirestoreError(error, OperationType.UPDATE, `messages/${id}`);
     }
   };
 
@@ -792,6 +839,33 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       await setDoc(doc(db, 'content', 'main'), updated, { merge: true });
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, 'content/main');
+    }
+  };
+
+  // Recycle Bin Actions
+  const restoreFromTrash = async (collectionName: 'projects' | 'bookings' | 'testimonials' | 'messages', id: string) => {
+    try {
+      await updateDoc(doc(db, collectionName, id), { isTrash: false, trashedAt: null });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id}`);
+    }
+  };
+
+  const permanentlyDelete = async (collectionName: 'projects' | 'bookings' | 'testimonials' | 'messages', id: string) => {
+    try {
+      await deleteDoc(doc(db, collectionName, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id}`);
+    }
+  };
+
+  const emptyTrash = async () => {
+    for (const item of trashItems) {
+      try {
+        await deleteDoc(doc(db, item.collectionName, item.id));
+      } catch (e) {
+        console.warn('Error purging item:', item.id, e);
+      }
     }
   };
 
@@ -822,6 +896,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         messages,
         services,
         websiteContent,
+        trashItems,
         viewMode,
         isAdminAuthenticated,
         adminPassword,
@@ -870,6 +945,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateMessageStatus,
         deleteMessage,
         updateWebsiteContent,
+        restoreFromTrash,
+        permanentlyDelete,
+        emptyTrash,
         resetAllData
       }}
     >

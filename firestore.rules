@@ -2,55 +2,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
     // Projects collection
     match /projects/{projectId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      allow read, write: if true;
     }
 
-    // Bookings collection (Clients from any device can create bookings)
+    // Bookings collection
     match /bookings/{bookingId} {
-      allow read: if true;
-      allow create: if incoming().name is string 
-                    && incoming().email is string 
-                    && incoming().serviceType is string;
-      allow update, delete: if true;
+      allow read, write: if true;
     }
 
-    // Messages collection (Clients from any device can submit messages)
+    // Messages collection
     match /messages/{messageId} {
-      allow read: if true;
-      allow create: if incoming().name is string 
-                    && incoming().email is string 
-                    && incoming().message is string;
-      allow update, delete: if true;
+      allow read, write: if true;
     }
 
     // Categories collection
     match /categories/{categoryId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      allow read, write: if true;
     }
 
     // Testimonials collection
     match /testimonials/{testimonialId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      allow read, write: if true;
     }
 
     // Website content collection
     match /content/{documentId} {
-      allow read: if true;
-      allow create, update, delete: if true;
+      allow read, write: if true;
+    }
+
+    // Metadata collection
+    match /metadata/{documentId} {
+      allow read, write: if true;
     }
 
     // Default deny for unmapped paths

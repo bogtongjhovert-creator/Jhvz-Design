@@ -11,6 +11,7 @@ import {
   Globe,
   BarChart2,
   Settings,
+  Trash2,
   Plus,
   ArrowLeft,
   ExternalLink,
@@ -31,11 +32,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     logoutAdmin,
     openAddProjectModal,
     bookings,
-    messages
+    messages,
+    trashItems
   } = usePortfolio();
 
   const pendingBookings = bookings.filter(b => b.status === 'pending').length;
   const unreadMessages = messages.filter(m => m.status === 'unread').length;
+  const trashedCount = trashItems.length;
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -46,6 +49,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
     { id: 'messages', label: 'Messages', icon: MessageCircle, badge: unreadMessages },
     { id: 'content', label: 'Website Content', icon: Globe },
+    { id: 'trash', label: 'Recycle Bin', icon: Trash2, badge: trashedCount },
     { id: 'analytics', label: 'Analytics', icon: BarChart2 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
