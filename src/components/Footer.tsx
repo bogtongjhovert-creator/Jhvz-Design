@@ -3,7 +3,7 @@ import { usePortfolio } from '../context/PortfolioContext';
 import { Calendar, Sparkles, Heart } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { websiteContent, openBookingModalWithProject, setSelectedCategory } = usePortfolio();
+  const { websiteContent, openBookingModalWithProject, setSelectedCategory, setViewMode } = usePortfolio();
 
   return (
     <footer className="border-t border-white/10 text-white/60 text-xs py-12">
@@ -98,8 +98,16 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-white/40">
           <p>© {new Date().getFullYear()} JHVZ DESIGN. All Rights Reserved.</p>
-          <div className="flex items-center gap-1">
-            <span>Powered by JHVZ Dynamic Portfolio Management System</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setViewMode('admin')}
+              type="button"
+              className="text-white/40 hover:text-indigo-300 transition-colors font-medium flex items-center gap-1.5"
+            >
+              <span>🔐 Admin CMS</span>
+            </button>
+            <span>•</span>
+            <span>JHVZ Dynamic Portfolio Engine</span>
           </div>
         </div>
       </div>
