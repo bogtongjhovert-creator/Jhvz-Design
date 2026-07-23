@@ -70,10 +70,10 @@ export const AddEditProjectModal: React.FC = () => {
   const [customCategoryInput, setCustomCategoryInput] = useState('');
 
   const [mediaType, setMediaType] = useState<MediaType>('image');
-  const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80');
-  const [videoUrl, setVideoUrl] = useState('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+  const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [externalLink, setExternalLink] = useState('');
-  const [thumbnail, setThumbnail] = useState('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80');
+  const [thumbnail, setThumbnail] = useState('');
 
   const [additionalGallery, setAdditionalGallery] = useState<string[]>([]);
   const [newGalleryInput, setNewGalleryInput] = useState('');
@@ -91,15 +91,19 @@ export const AddEditProjectModal: React.FC = () => {
   const [metaDescription, setMetaDescription] = useState('');
   const [keywordsInput, setKeywordsInput] = useState('');
 
-  // Sample Preset Cover Images
-  const samplePresets = [
-    { label: 'Branding / Packaging', url: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=80' },
-    { label: 'Poster / Event', url: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=1200&q=80' },
-    { label: 'UI / Mobile App', url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80' },
-    { label: 'Social Media / Restaurant', url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80' },
-    { label: 'Print / Brochure', url: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=1200&q=80' },
-    { label: 'Motion Graphics / Video', url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80' }
-  ];
+  // Handle direct photo upload for cover image
+  const handleCoverFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setImageUrl(result);
+        setThumbnail(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Populate form if editing existing
   useEffect(() => {
@@ -139,8 +143,8 @@ export const AddEditProjectModal: React.FC = () => {
       setTags(['Branding', 'Social Media']);
       setCategory(categories[0]?.name || 'Poster Design');
       setMediaType('image');
-      setImageUrl(samplePresets[0].url);
-      setThumbnail(samplePresets[0].url);
+      setImageUrl('');
+      setThumbnail('');
       setAdditionalGallery([]);
       setSoftwareUsed(['Photoshop', 'Illustrator']);
       setDuration('1 Week');
@@ -234,7 +238,7 @@ export const AddEditProjectModal: React.FC = () => {
       imageUrl: imageUrl.trim() || undefined,
       videoUrl: videoUrl.trim() || undefined,
       externalLink: externalLink.trim() || undefined,
-      thumbnail: thumbnail || imageUrl || samplePresets[0].url,
+      thumbnail: thumbnail || imageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80',
       additionalGallery,
       softwareUsed,
       duration,
@@ -466,43 +470,53 @@ export const AddEditProjectModal: React.FC = () => {
               <div className="glass-panel p-4 rounded-2xl space-y-3 border border-white/10">
                 <label className="block text-white font-semibold flex items-center gap-2">
                   <ImageIcon className="w-4 h-4 text-indigo-400" />
-                  <span>1. Main Cover / Featured Image URL</span>
+                  <span>1. Main Cover / Featured Image</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="Paste Image URL or pick a sample preset below..."
-                  value={imageUrl}
-                  onChange={(e) => {
-                    setImageUrl(e.target.value);
-                    if (!thumbnail || thumbnail === imageUrl) {
-                      setThumbnail(e.target.value);
-                    }
-                  }}
-                  className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white focus:border-indigo-500/80 outline-none"
-                />
 
-                {/* Preset Image Selection Cards */}
-                <div className="pt-1">
-                  <span className="text-[10px] text-white/40 block mb-2 font-medium uppercase tracking-wider">Or pick a sample preset image:</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-                    {samplePresets.map((preset, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => {
-                          setImageUrl(preset.url);
-                          setThumbnail(preset.url);
-                        }}
-                        className={`cursor-pointer rounded-xl overflow-hidden border-2 relative h-16 group transition-all ${
-                          imageUrl === preset.url ? 'border-indigo-400 scale-[1.02]' : 'border-white/10 opacity-70 hover:opacity-100'
-                        }`}
+                {/* Direct Upload & Preview Container */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <label className="flex-1 cursor-pointer glass-panel glass-panel-hover border-2 border-dashed border-indigo-500/40 hover:border-indigo-400 p-4 rounded-xl text-center flex flex-col items-center justify-center gap-2 transition-all">
+                    <Upload className="w-6 h-6 text-indigo-400" />
+                    <span className="text-xs font-bold text-white">Click to Upload Photo from Device</span>
+                    <span className="text-[10px] text-white/50">Supports JPG, PNG, WEBP, SVG</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCoverFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {imageUrl && (
+                    <div className="relative w-full sm:w-32 h-32 rounded-xl overflow-hidden border-2 border-indigo-500/50 shrink-0 group bg-slate-900 shadow-md">
+                      <img src={imageUrl} alt="Main Cover Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => { setImageUrl(''); setThumbnail(''); }}
+                        className="absolute top-1.5 right-1.5 bg-red-600/90 text-white rounded-full p-1 opacity-90 hover:opacity-100 transition-opacity shadow"
+                        title="Remove uploaded image"
                       >
-                        <img src={preset.url} alt={preset.label} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/60 p-1 flex items-end">
-                          <span className="text-[9px] text-white font-bold line-clamp-1">{preset.label}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional URL input fallback */}
+                <div className="pt-1">
+                  <label className="block text-[11px] text-white/50 mb-1 font-medium">Or paste direct Image URL:</label>
+                  <input
+                    type="text"
+                    placeholder="https://example.com/cover-design.png"
+                    value={imageUrl.startsWith('data:') ? '[Uploaded Photo File]' : imageUrl}
+                    onChange={(e) => {
+                      setImageUrl(e.target.value);
+                      if (!thumbnail || thumbnail === imageUrl) {
+                        setThumbnail(e.target.value);
+                      }
+                    }}
+                    className="w-full glass-input rounded-xl px-3.5 py-2 text-xs text-white focus:border-indigo-500/80 outline-none"
+                  />
                 </div>
               </div>
 
