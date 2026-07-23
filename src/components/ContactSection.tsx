@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../context/PortfolioContext';
-import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Link } from 'lucide-react';
 import { sendEmailNotification } from '../utils/emailNotifier';
 
 export const ContactSection: React.FC = () => {
@@ -10,6 +10,7 @@ export const ContactSection: React.FC = () => {
     name: '',
     email: '',
     subject: '',
+    designProofUrl: '',
     content: ''
   });
 
@@ -23,6 +24,7 @@ export const ContactSection: React.FC = () => {
       name: formData.name,
       email: formData.email,
       subject: formData.subject || 'General Inquiry',
+      designProofUrl: formData.designProofUrl,
       content: formData.content
     });
 
@@ -31,6 +33,7 @@ export const ContactSection: React.FC = () => {
       name: formData.name,
       email: formData.email,
       subject: formData.subject,
+      designProofUrl: formData.designProofUrl,
       details: formData.content
     });
 
@@ -38,7 +41,7 @@ export const ContactSection: React.FC = () => {
 
     setTimeout(() => {
       setSent(false);
-      setFormData({ name: '', email: '', subject: '', content: '' });
+      setFormData({ name: '', email: '', subject: '', designProofUrl: '', content: '' });
     }, 5000);
   };
 
@@ -145,6 +148,21 @@ export const ContactSection: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white placeholder-white/30 focus:border-indigo-500/80 outline-none"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-white/60 font-semibold mb-1 flex items-center gap-1.5">
+                    <Link className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Attach Design Proof / Brief Link (Optional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://figma.com/... or Google Drive / Canva link"
+                    value={formData.designProofUrl}
+                    onChange={(e) => setFormData({ ...formData, designProofUrl: e.target.value })}
+                    className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white placeholder-white/30 focus:border-indigo-500/80 outline-none"
+                  />
+                  <p className="text-[10px] text-white/40 mt-1">Provide a clickable URL to Figma, Google Drive, Canva, or Dropbox for proof or reference.</p>
                 </div>
 
                 <div>

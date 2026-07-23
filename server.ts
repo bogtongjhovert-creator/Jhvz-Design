@@ -10,7 +10,7 @@ async function startServer() {
 
   // API route for notification dispatch to jhovzdesign@gmail.com
   app.post("/api/notify-email", (req, res) => {
-    const { type, name, email, phone, subject, serviceType, details, budget, targetDate } = req.body || {};
+    const { type, name, email, phone, subject, serviceType, details, budget, targetDate, designProofUrl } = req.body || {};
     
     console.log(`\n================ EMAIL NOTIFICATION TO jhovzdesign@gmail.com ================`);
     console.log(`Type: ${type || 'New Submission'}`);
@@ -22,6 +22,7 @@ async function startServer() {
     if (serviceType) console.log(`Service: ${serviceType}`);
     if (budget) console.log(`Budget: ${budget}`);
     if (targetDate) console.log(`Target Date: ${targetDate}`);
+    if (designProofUrl) console.log(`Design Proof Link: ${designProofUrl}`);
     console.log(`Message Details:\n${details}`);
     console.log(`Timestamp: ${new Date().toISOString()}`);
     console.log(`============================================================================\n`);

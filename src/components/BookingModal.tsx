@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../context/PortfolioContext';
-import { X, Calendar, DollarSign, Send, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, Calendar, DollarSign, Send, Sparkles, CheckCircle2, Link, ExternalLink } from 'lucide-react';
 import { sendEmailNotification } from '../utils/emailNotifier';
 
 export const BookingModal: React.FC = () => {
@@ -19,6 +19,7 @@ export const BookingModal: React.FC = () => {
     serviceType: services[0]?.title || 'Brand Identity & Logo Design',
     budget: '$250 - $500',
     targetDate: '',
+    designProofUrl: '',
     projectDetails: ''
   });
 
@@ -38,6 +39,7 @@ export const BookingModal: React.FC = () => {
       projectDetails: formData.projectDetails,
       budget: formData.budget,
       targetDate: formData.targetDate || new Date().toISOString().split('T')[0],
+      designProofUrl: formData.designProofUrl,
       referencedProjectId: selectedProjectForBooking?.id,
       referencedProjectTitle: selectedProjectForBooking?.title
     });
@@ -50,6 +52,7 @@ export const BookingModal: React.FC = () => {
       serviceType: formData.serviceType,
       budget: formData.budget,
       targetDate: formData.targetDate,
+      designProofUrl: formData.designProofUrl,
       details: formData.projectDetails || 'Custom design booking request'
     });
 
@@ -65,6 +68,7 @@ export const BookingModal: React.FC = () => {
         serviceType: services[0]?.title || 'Brand Identity & Logo Design',
         budget: '$250 - $500',
         targetDate: '',
+        designProofUrl: '',
         projectDetails: ''
       });
     }, 4000);
@@ -196,6 +200,21 @@ export const BookingModal: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
                   className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white focus:border-indigo-500/80 outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="block text-white/60 font-semibold mb-1 flex items-center gap-1.5">
+                  <Link className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Design Proof / Reference Link (Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://figma.com/... or Google Drive / Canva link for proof"
+                  value={formData.designProofUrl}
+                  onChange={(e) => setFormData({ ...formData, designProofUrl: e.target.value })}
+                  className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white placeholder-white/30 focus:border-indigo-500/80 outline-none"
+                />
+                <p className="text-[10px] text-white/40 mt-1">Attach a clickable Figma, Google Drive, Canva, or Dropbox link to your company design proof/assets.</p>
               </div>
 
               <div>

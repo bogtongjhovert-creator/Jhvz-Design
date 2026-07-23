@@ -8,6 +8,7 @@ export interface EmailNotificationPayload {
   details: string;
   budget?: string;
   targetDate?: string;
+  designProofUrl?: string;
 }
 
 export const TARGET_EMAIL = 'jhovzdesign@gmail.com';

@@ -52,6 +52,7 @@ export interface BookingItem {
   projectDetails: string;
   budget: string;
   targetDate: string;
+  designProofUrl?: string;
   referencedProjectId?: string;
   referencedProjectTitle?: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
@@ -76,6 +77,7 @@ export interface MessageItem {
   email: string;
   subject: string;
   content: string;
+  designProofUrl?: string;
   date: string;
   status: 'unread' | 'read' | 'archived';
 }

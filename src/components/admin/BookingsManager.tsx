@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { Calendar, CheckCircle2, Clock, Trash2, Mail, Phone, DollarSign, Sparkles } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, Trash2, Mail, Phone, DollarSign, Sparkles, ExternalLink, Link as LinkIcon } from 'lucide-react';
 
 export const BookingsManager: React.FC = () => {
   const { bookings, updateBookingStatus, deleteBooking } = usePortfolio();
@@ -55,6 +55,25 @@ export const BookingsManager: React.FC = () => {
                   <div className="bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 text-xs text-zinc-300">
                     <span className="text-[10px] uppercase font-bold text-zinc-500 block">Style Reference:</span>
                     <span className="text-cyan-300 font-medium">{book.referencedProjectTitle}</span>
+                  </div>
+                )}
+
+                {book.designProofUrl && (
+                  <div className="bg-cyan-950/40 border border-cyan-500/30 p-2.5 rounded-xl text-xs flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-cyan-300 font-medium overflow-hidden">
+                      <LinkIcon className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <span className="text-[11px] font-bold text-zinc-300 shrink-0">Design Proof:</span>
+                      <span className="text-[11px] text-cyan-300 truncate">{book.designProofUrl}</span>
+                    </div>
+                    <a
+                      href={book.designProofUrl.startsWith('http') ? book.designProofUrl : `https://${book.designProofUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/40 hover:text-white transition-all shrink-0 border border-cyan-500/30"
+                    >
+                      <span>Open Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
                 )}
 
