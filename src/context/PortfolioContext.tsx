@@ -504,6 +504,17 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setProjectToEdit(null);
   };
 
+  // Helper to remove undefined fields before sending to Firestore
+  const cleanData = <T extends Record<string, any>>(obj: T): T => {
+    const clean: Record<string, any> = {};
+    for (const key of Object.keys(obj)) {
+      if (obj[key] !== undefined) {
+        clean[key] = obj[key];
+      }
+    }
+    return clean as T;
+  };
+
   // CRUD Portfolio
   const addProject = async (projectData: Omit<PortfolioItem, 'id' | 'createdDate' | 'updatedDate' | 'views' | 'likes'>) => {
     const today = new Date().toISOString().split('T')[0];
@@ -517,12 +528,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isTrash: false
     };
 
-    setPortfolio((prev) => [newProject, ...prev]);
+    const payload = cleanData(newProject);
+    setPortfolio((prev) => [payload, ...prev]);
 
     try {
-      await setDoc(doc(db, 'projects', newProject.id), newProject);
+      await setDoc(doc(db, 'projects', payload.id), payload);
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `projects/${newProject.id}`);
+      console.error('Firestore addProject error:', error);
+      handleFirestoreError(error, OperationType.WRITE, `projects/${payload.id}`);
     }
 
     if (projectData.category) {
@@ -535,7 +548,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const updateProject = async (id: string, projectData: Partial<PortfolioItem>) => {
     const today = new Date().toISOString().split('T')[0];
-    const updatedFields = { ...projectData, updatedDate: today };
+    const updatedFields = cleanData({ ...projectData, updatedDate: today });
 
     setPortfolio((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updatedFields } : item))
@@ -544,6 +557,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       await updateDoc(doc(db, 'projects', id), updatedFields);
     } catch (error) {
+      console.error('Firestore updateProject error:', error);
       handleFirestoreError(error, OperationType.UPDATE, `projects/${id}`);
     }
   };
@@ -581,12 +595,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isTrash: false
     };
 
-    setPortfolio((prev) => [copy, ...prev]);
+    const payload = cleanData(copy);
+    setPortfolio((prev) => [payload, ...prev]);
 
     try {
-      await setDoc(doc(db, 'projects', copy.id), copy);
+      await setDoc(doc(db, 'projects', payload.id), payload);
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `projects/${copy.id}`);
+      handleFirestoreError(error, OperationType.WRITE, `projects/${payload.id}`);
     }
   };
 
@@ -644,19 +659,20 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       order: categories.length + 1
     };
 
-    setCategories((prev) => [...prev, newCat]);
+    const payload = cleanData(newCat);
+    setCategories((prev) => [...prev, payload]);
 
     try {
-      await setDoc(doc(db, 'categories', newCat.id), newCat);
+      await setDoc(doc(db, 'categories', payload.id), payload);
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `categories/${newCat.id}`);
+      handleFirestoreError(error, OperationType.WRITE, `categories/${payload.id}`);
     }
   };
 
   const updateCategory = async (id: string, categoryName: string) => {
     const trimmed = categoryName.trim();
     if (!trimmed) return;
-    const updated = { name: trimmed, slug: trimmed.toLowerCase().replace(/\s+/g, '-') };
+    const updated = cleanData({ name: trimmed, slug: trimmed.toLowerCase().replace(/\s+/g, '-') });
 
     setCategories((prev) =>
       prev.map((cat) => (cat.id === id ? { ...cat, ...updated } : cat))
@@ -700,22 +716,26 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isTrash: false
     };
 
-    setBookings((prev) => [newBooking, ...prev]);
+    const payload = cleanData(newBooking);
+    setBookings((prev) => [payload, ...prev]);
 
     try {
-      await setDoc(doc(db, 'bookings', newBooking.id), newBooking);
+      await setDoc(doc(db, 'bookings', payload.id), payload);
+      console.log('✅ Booking successfully saved to Firestore:', payload.id);
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `bookings/${newBooking.id}`);
+      console.error('❌ Error saving booking to Firestore:', error);
+      handleFirestoreError(error, OperationType.WRITE, `bookings/${payload.id}`);
     }
   };
 
   const updateBooking = async (id: string, bookingData: Partial<BookingItem>) => {
+    const payload = cleanData(bookingData);
     setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, ...bookingData } : b))
+      prev.map((b) => (b.id === id ? { ...b, ...payload } : b))
     );
 
     try {
-      await updateDoc(doc(db, 'bookings', id), bookingData);
+      await updateDoc(doc(db, 'bookings', id), payload);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `bookings/${id}`);
     }
@@ -754,22 +774,24 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isTrash: false
     };
 
-    setTestimonials((prev) => [newTest, ...prev]);
+    const payload = cleanData(newTest);
+    setTestimonials((prev) => [payload, ...prev]);
 
     try {
-      await setDoc(doc(db, 'testimonials', newTest.id), newTest);
+      await setDoc(doc(db, 'testimonials', payload.id), payload);
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `testimonials/${newTest.id}`);
+      handleFirestoreError(error, OperationType.WRITE, `testimonials/${payload.id}`);
     }
   };
 
   const updateTestimonial = async (id: string, testData: Partial<TestimonialItem>) => {
+    const payload = cleanData(testData);
     setTestimonials((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...testData } : t))
+      prev.map((t) => (t.id === id ? { ...t, ...payload } : t))
     );
 
     try {
-      await updateDoc(doc(db, 'testimonials', id), testData);
+      await updateDoc(doc(db, 'testimonials', id), payload);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `testimonials/${id}`);
     }
@@ -797,12 +819,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isTrash: false
     };
 
-    setMessages((prev) => [newMsg, ...prev]);
+    const payload = cleanData(newMsg);
+    setMessages((prev) => [payload, ...prev]);
 
     try {
-      await setDoc(doc(db, 'messages', newMsg.id), newMsg);
+      await setDoc(doc(db, 'messages', payload.id), payload);
+      console.log('✅ Message successfully saved to Firestore:', payload.id);
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, `messages/${newMsg.id}`);
+      console.error('❌ Error saving message to Firestore:', error);
+      handleFirestoreError(error, OperationType.WRITE, `messages/${payload.id}`);
     }
   };
 

@@ -32,16 +32,16 @@ export const BookingModal: React.FC = () => {
     if (!formData.clientName || !formData.email) return;
 
     addBooking({
-      clientName: formData.clientName,
-      email: formData.email,
-      phone: formData.phone,
+      clientName: formData.clientName.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
       serviceType: formData.serviceType,
-      projectDetails: formData.projectDetails,
+      projectDetails: formData.projectDetails.trim(),
       budget: formData.budget,
       targetDate: formData.targetDate || new Date().toISOString().split('T')[0],
-      designProofUrl: formData.designProofUrl,
-      referencedProjectId: selectedProjectForBooking?.id,
-      referencedProjectTitle: selectedProjectForBooking?.title
+      designProofUrl: formData.designProofUrl.trim(),
+      referencedProjectId: selectedProjectForBooking?.id || '',
+      referencedProjectTitle: selectedProjectForBooking?.title || ''
     });
 
     await sendEmailNotification({
