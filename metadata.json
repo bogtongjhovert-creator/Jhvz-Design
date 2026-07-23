@@ -1,0 +1,6 @@
+{
+  "name": "JHVZ DESIGN - Portfolio & Admin CMS",
+  "description": "Dynamic design portfolio showcase and content management system for JHVZ DESIGN.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
