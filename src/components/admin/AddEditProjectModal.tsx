@@ -254,6 +254,18 @@ export const AddEditProjectModal: React.FC = () => {
     }
   };
 
+  const handleGalleryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const compressedBase64 = await compressImageFile(files[i]);
+        if (compressedBase64 && !additionalGallery.includes(compressedBase64)) {
+          setAdditionalGallery(prev => [...prev, compressedBase64]);
+        }
+      }
+    }
+  };
+
   const handleCreateNewCategory = () => {
     if (customCategoryInput.trim()) {
       addCategory(customCategoryInput.trim());
@@ -642,21 +654,32 @@ export const AddEditProjectModal: React.FC = () => {
             {/* Additional Gallery (+ Add Images) */}
             <div className="space-y-2">
               <label className="block text-white/60 font-semibold">Additional Gallery Images</label>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input
                   type="text"
                   placeholder="Add image URL to gallery..."
                   value={newGalleryInput}
                   onChange={(e) => setNewGalleryInput(e.target.value)}
-                  className="flex-1 glass-input rounded-xl px-3 py-1.5 text-white outline-none"
+                  className="flex-1 glass-input rounded-xl px-3 py-1.5 text-white outline-none text-xs"
                 />
                 <button
                   type="button"
                   onClick={handleAddGalleryImage}
-                  className="glass-pill hover:bg-white/15 text-white font-bold px-3 py-1.5 rounded-xl"
+                  className="glass-pill hover:bg-white/15 text-white font-bold px-3 py-1.5 rounded-xl text-xs"
                 >
-                  + Add
+                  + Add URL
                 </button>
+                <label className="cursor-pointer bg-indigo-600/80 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center justify-center gap-1 transition-all">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span>Upload Photos</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleGalleryFileUpload}
+                    className="hidden"
+                  />
+                </label>
               </div>
 
               {additionalGallery.length > 0 && (

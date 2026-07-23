@@ -1,0 +1,144 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Portfolio Item",
+      "description": "Represents a design or showcase project in the portfolio",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "shortDescription": { "type": "string" },
+        "fullDescription": { "type": "string" },
+        "client": { "type": "string" },
+        "designer": { "type": "string" },
+        "tags": { "type": "array" },
+        "category": { "type": "string" },
+        "mediaType": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "externalLink": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "additionalGallery": { "type": "array" },
+        "softwareUsed": { "type": "array" },
+        "duration": { "type": "string" },
+        "completionDate": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "homepage": { "type": "boolean" },
+        "public": { "type": "boolean" },
+        "acceptSimilar": { "type": "boolean" },
+        "seoUrl": { "type": "string" },
+        "metaDescription": { "type": "string" },
+        "keywords": { "type": "array" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "category", "status"]
+    },
+    "Booking": {
+      "title": "Client Booking",
+      "description": "Client design consultation or project booking submission",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "budget": { "type": "string" },
+        "timeline": { "type": "string" },
+        "description": { "type": "string" },
+        "preferredDate": { "type": "string" },
+        "preferredTime": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "email", "serviceType"]
+    },
+    "Message": {
+      "title": "Contact Message",
+      "description": "General inquiry or contact message from clients",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "email", "message"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Design portfolio category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "count": { "type": "number" }
+      },
+      "required": ["name"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Client review or testimonial",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientName": { "type": "string" },
+        "company": { "type": "string" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "projectTitle": { "type": "string" }
+      },
+      "required": ["clientName", "comment"]
+    },
+    "WebsiteContent": {
+      "title": "Website Content",
+      "description": "Editable hero, bio, contact details for portfolio site",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "designerName": { "type": "string" },
+        "bio": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "location": { "type": "string" },
+        "behanceUrl": { "type": "string" },
+        "dribbbleUrl": { "type": "string" },
+        "instagramUrl": { "type": "string" },
+        "linkedinUrl": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "#/entities/Project",
+      "description": "Portfolio projects collection"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "#/entities/Booking",
+      "description": "Client bookings collection"
+    },
+    "/messages/{messageId}": {
+      "schema": "#/entities/Message",
+      "description": "Inquiry messages collection"
+    },
+    "/categories/{categoryId}": {
+      "schema": "#/entities/Category",
+      "description": "Design categories collection"
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": "#/entities/Testimonial",
+      "description": "Testimonials collection"
+    },
+    "/content/main": {
+      "schema": "#/entities/WebsiteContent",
+      "description": "Website main dynamic content"
+    }
+  }
+}
