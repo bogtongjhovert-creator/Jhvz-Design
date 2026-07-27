@@ -97,7 +97,7 @@ interface PortfolioContextType {
   reorderCategories: (newCats: CategoryItem[]) => void;
   
   // Bookings
-  addBooking: (booking: Omit<BookingItem, 'id' | 'createdAt' | 'status'>) => void;
+  addBooking: (booking: Omit<BookingItem, 'id' | 'createdAt' | 'status'>) => Promise<BookingItem>;
   updateBooking: (id: string, booking: Partial<BookingItem>) => void;
   updateBookingStatus: (id: string, status: BookingItem['status']) => void;
   deleteBooking: (id: string) => void;
@@ -111,6 +111,11 @@ interface PortfolioContextType {
   addMessage: (msg: Omit<MessageItem, 'id' | 'date' | 'status'>) => void;
   updateMessageStatus: (id: string, status: MessageItem['status']) => void;
   deleteMessage: (id: string) => void;
+  
+  // Services
+  addService: (service: Omit<ServiceItem, 'id'>) => void;
+  updateService: (id: string, service: Partial<ServiceItem>) => void;
+  deleteService: (id: string) => void;
   
   // Content
   updateWebsiteContent: (content: Partial<WebsiteContent>) => void;
@@ -173,7 +178,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  const [services] = useState<ServiceItem[]>(INITIAL_SERVICES);
+  const [services, setServices] = useState<ServiceItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('jhvz_services');
+      return saved ? JSON.parse(saved) : INITIAL_SERVICES;
+    } catch {
+      return INITIAL_SERVICES;
+    }
+  });
 
   const [websiteContent, setWebsiteContent] = useState<WebsiteContent>(() => {
     try {
@@ -242,6 +254,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [messages]);
 
   useEffect(() => {
+    try { localStorage.setItem('jhvz_services', JSON.stringify(services)); } catch (e) { console.warn(e); }
+  }, [services]);
+
+  useEffect(() => {
     try { localStorage.setItem('jhvz_content', JSON.stringify(websiteContent)); } catch (e) { console.warn(e); }
   }, [websiteContent]);
 
@@ -274,6 +290,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           // Seed Testimonials
           for (const t of INITIAL_TESTIMONIALS) {
             await setDoc(doc(db, 'testimonials', t.id), t);
+          }
+          // Seed Services
+          for (const s of INITIAL_SERVICES) {
+            await setDoc(doc(db, 'services', s.id), s);
           }
           // Seed Content
           await setDoc(doc(db, 'content', 'main'), INITIAL_WEBSITE_CONTENT);
@@ -353,7 +373,19 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       (error) => handleFirestoreError(error, OperationType.GET, 'testimonials')
     );
 
-    // 6. Sync Website Content
+    // 6. Sync Services
+    const unsubServices = onSnapshot(
+      collection(db, 'services'),
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const items: ServiceItem[] = snapshot.docs.map((d) => d.data() as ServiceItem);
+          setServices(items);
+        }
+      },
+      (error) => handleFirestoreError(error, OperationType.GET, 'services')
+    );
+
+    // 7. Sync Website Content
     const unsubContent = onSnapshot(
       doc(db, 'content', 'main'),
       (docSnap) => {
@@ -370,6 +402,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       unsubBookings();
       unsubMessages();
       unsubTestimonials();
+      unsubServices();
       unsubContent();
     };
   }, []);
@@ -707,10 +740,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // Bookings
-  const addBooking = async (bookingData: Omit<BookingItem, 'id' | 'createdAt' | 'status'>) => {
+  const addBooking = async (bookingData: Omit<BookingItem, 'id' | 'createdAt' | 'status'>): Promise<BookingItem> => {
+    // Generate unique ID with random suffix to prevent collisions across multiple client devices
+    const uniqueId = 'book-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
     const newBooking: BookingItem = {
       ...bookingData,
-      id: 'book-' + Date.now(),
+      id: uniqueId,
       status: 'pending',
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
       isTrash: false
@@ -722,9 +757,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       await setDoc(doc(db, 'bookings', payload.id), payload);
       console.log('✅ Booking successfully saved to Firestore:', payload.id);
+      return payload;
     } catch (error) {
       console.error('❌ Error saving booking to Firestore:', error);
       handleFirestoreError(error, OperationType.WRITE, `bookings/${payload.id}`);
+      throw error;
     }
   };
 
@@ -855,6 +892,45 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Services CRUD
+  const addService = async (serviceData: Omit<ServiceItem, 'id'>) => {
+    const newSrv: ServiceItem = {
+      ...serviceData,
+      id: 'srv-' + Date.now()
+    };
+    const payload = cleanData(newSrv);
+    setServices((prev) => [...prev, payload]);
+
+    try {
+      await setDoc(doc(db, 'services', payload.id), payload);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, `services/${payload.id}`);
+    }
+  };
+
+  const updateService = async (id: string, serviceData: Partial<ServiceItem>) => {
+    const payload = cleanData(serviceData);
+    setServices((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...payload } : s))
+    );
+
+    try {
+      await updateDoc(doc(db, 'services', id), payload);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `services/${id}`);
+    }
+  };
+
+  const deleteService = async (id: string) => {
+    setServices((prev) => prev.filter((s) => s.id !== id));
+
+    try {
+      await deleteDoc(doc(db, 'services', id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `services/${id}`);
+    }
+  };
+
   // Website Content
   const updateWebsiteContent = async (contentData: Partial<WebsiteContent>) => {
     const updated = { ...websiteContent, ...contentData };
@@ -969,6 +1045,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addMessage,
         updateMessageStatus,
         deleteMessage,
+        addService,
+        updateService,
+        deleteService,
         updateWebsiteContent,
         restoreFromTrash,
         permanentlyDelete,

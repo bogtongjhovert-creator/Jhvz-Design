@@ -14,6 +14,7 @@ import { GalaxyBackground } from './components/GalaxyBackground';
 
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { ServicesManager } from './components/admin/ServicesManager';
 import { PortfolioManager } from './components/admin/PortfolioManager';
 import { AddEditProjectModal } from './components/admin/AddEditProjectModal';
 import { CategoryManager } from './components/admin/CategoryManager';
@@ -51,7 +52,7 @@ const MainContent: React.FC = () => {
         ) : (
           <AdminLayout>
             {activeAdminTab === 'dashboard' && <AdminDashboard />}
-            {activeAdminTab === 'services' && <ServicesSection />}
+            {activeAdminTab === 'services' && <ServicesManager />}
             {activeAdminTab === 'portfolio' && <PortfolioManager />}
             {activeAdminTab === 'categories' && <CategoryManager />}
             {activeAdminTab === 'bookings' && <BookingsManager />}

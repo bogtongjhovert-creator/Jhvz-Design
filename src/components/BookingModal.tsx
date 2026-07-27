@@ -24,6 +24,8 @@ export const BookingModal: React.FC = () => {
   });
 
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>('');
 
   if (!isBookingModalOpen) return null;
 
@@ -31,47 +33,57 @@ export const BookingModal: React.FC = () => {
     e.preventDefault();
     if (!formData.clientName || !formData.email) return;
 
-    addBooking({
-      clientName: formData.clientName.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      serviceType: formData.serviceType,
-      projectDetails: formData.projectDetails.trim(),
-      budget: formData.budget,
-      targetDate: formData.targetDate || new Date().toISOString().split('T')[0],
-      designProofUrl: formData.designProofUrl.trim(),
-      referencedProjectId: selectedProjectForBooking?.id || '',
-      referencedProjectTitle: selectedProjectForBooking?.title || ''
-    });
+    setIsSubmitting(true);
+    setErrorMsg('');
 
-    await sendEmailNotification({
-      type: 'Booking',
-      name: formData.clientName,
-      email: formData.email,
-      phone: formData.phone,
-      serviceType: formData.serviceType,
-      budget: formData.budget,
-      targetDate: formData.targetDate,
-      designProofUrl: formData.designProofUrl,
-      details: formData.projectDetails || 'Custom design booking request'
-    });
-
-    setSubmitted(true);
-
-    setTimeout(() => {
-      setSubmitted(false);
-      closeBookingModal();
-      setFormData({
-        clientName: '',
-        email: '',
-        phone: '',
-        serviceType: services[0]?.title || 'Brand Identity & Logo Design',
-        budget: '$250 - $500',
-        targetDate: '',
-        designProofUrl: '',
-        projectDetails: ''
+    try {
+      await addBooking({
+        clientName: formData.clientName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        serviceType: formData.serviceType,
+        projectDetails: formData.projectDetails.trim(),
+        budget: formData.budget,
+        targetDate: formData.targetDate || new Date().toISOString().split('T')[0],
+        designProofUrl: formData.designProofUrl.trim(),
+        referencedProjectId: selectedProjectForBooking?.id || '',
+        referencedProjectTitle: selectedProjectForBooking?.title || ''
       });
-    }, 4000);
+
+      await sendEmailNotification({
+        type: 'Booking',
+        name: formData.clientName,
+        email: formData.email,
+        phone: formData.phone,
+        serviceType: formData.serviceType,
+        budget: formData.budget,
+        targetDate: formData.targetDate,
+        designProofUrl: formData.designProofUrl,
+        details: formData.projectDetails || 'Custom design booking request'
+      });
+
+      setSubmitted(true);
+      setIsSubmitting(false);
+
+      setTimeout(() => {
+        setSubmitted(false);
+        closeBookingModal();
+        setFormData({
+          clientName: '',
+          email: '',
+          phone: '',
+          serviceType: services[0]?.title || 'Brand Identity & Logo Design',
+          budget: '$250 - $500',
+          targetDate: '',
+          designProofUrl: '',
+          projectDetails: ''
+        });
+      }, 4000);
+    } catch (err) {
+      console.error('Booking submission failed:', err);
+      setErrorMsg('Network error saving booking. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -227,14 +239,29 @@ export const BookingModal: React.FC = () => {
                   className="w-full glass-input rounded-xl px-3.5 py-2.5 text-white placeholder-white/30 focus:border-indigo-500/80 outline-none resize-none"
                 />
               </div>
+              {errorMsg && (
+                <div className="bg-red-500/20 border border-red-500/50 p-3 rounded-xl text-xs text-red-300 font-medium">
+                  {errorMsg}
+                </div>
+              )}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm py-3 rounded-xl shadow-xl shadow-indigo-500/30 border border-indigo-400/40 flex items-center justify-center gap-2 transition-all active:scale-95"
+              disabled={isSubmitting}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900 text-white font-black text-sm py-3 rounded-xl shadow-xl shadow-indigo-500/30 border border-indigo-400/40 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:cursor-not-allowed"
             >
-              <Send className="w-4 h-4" />
-              <span>Submit Booking Request</span>
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Transmitting to Firebase...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>Submit Booking Request</span>
+                </>
+              )}
             </button>
           </form>
         )}

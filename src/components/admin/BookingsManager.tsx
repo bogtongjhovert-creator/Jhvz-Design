@@ -29,15 +29,21 @@ export const BookingsManager: React.FC = () => {
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-2">
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Client Bookings Database</span>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Client Bookings Database</span>
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>Real-time Multi-Device Sync Active ({bookings.length} Bookings)</span>
+          </div>
         </div>
         <h2 className="text-2xl font-black text-white tracking-tight">
           Design Consultation & Booking Requests
         </h2>
         <p className="text-xs text-zinc-400">
-          Bookings submitted by clients on any device are stored centrally in Firebase Firestore. Edit details, change status, or manage records below.
+          Bookings submitted by clients on any desktop, tablet, or mobile phone are transmitted instantly to Firebase Firestore and displayed here in real-time.
         </p>
       </div>
 
