@@ -3,6 +3,7 @@ import { PortfolioProvider, usePortfolio } from './context/PortfolioContext';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { PortfolioGallery } from './components/PortfolioGallery';
+import { MotionGraphicsShowcase } from './components/MotionGraphicsShowcase';
 import { ServicesSection } from './components/ServicesSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { ContactSection } from './components/ContactSection';
@@ -10,6 +11,7 @@ import { Footer } from './components/Footer';
 import { ProjectLightbox } from './components/ProjectLightbox';
 import { BookingModal } from './components/BookingModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { GalaxyBackground } from './components/GalaxyBackground';
 
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './components/admin/AdminDashboard';
@@ -29,40 +31,46 @@ const MainContent: React.FC = () => {
   const { viewMode, isAdminAuthenticated, activeAdminTab } = usePortfolio();
 
   return (
-    <div className="min-h-screen text-white flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {viewMode === 'public' && <Header />}
+    <div className="min-h-screen text-white flex flex-col font-sans selection:bg-purple-500 selection:text-white relative bg-black overflow-x-hidden">
+      {/* Full-site dynamic galaxy motion background */}
+      <GalaxyBackground />
 
-      {viewMode === 'public' ? (
-        <main className="flex-1">
-          <HeroSection />
-          <PortfolioGallery />
-          <ServicesSection />
-          <TestimonialsSection />
-          <ContactSection />
-          <Footer />
-        </main>
-      ) : !isAdminAuthenticated ? (
-        <AdminLoginModal />
-      ) : (
-        <AdminLayout>
-          {activeAdminTab === 'dashboard' && <AdminDashboard />}
-          {activeAdminTab === 'services' && <ServicesSection />}
-          {activeAdminTab === 'portfolio' && <PortfolioManager />}
-          {activeAdminTab === 'categories' && <CategoryManager />}
-          {activeAdminTab === 'bookings' && <BookingsManager />}
-          {activeAdminTab === 'testimonials' && <TestimonialsManager />}
-          {activeAdminTab === 'messages' && <MessagesManager />}
-          {activeAdminTab === 'content' && <WebsiteContentManager />}
-          {activeAdminTab === 'trash' && <TrashManager />}
-          {activeAdminTab === 'analytics' && <AnalyticsView />}
-          {activeAdminTab === 'settings' && <SettingsView />}
-        </AdminLayout>
-      )}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {viewMode === 'public' && <Header />}
 
-      {/* Global Modals */}
-      <ProjectLightbox />
-      <BookingModal />
-      <AddEditProjectModal />
+        {viewMode === 'public' ? (
+          <main className="flex-1">
+            <HeroSection />
+            <PortfolioGallery />
+            <MotionGraphicsShowcase />
+            <ServicesSection />
+            <TestimonialsSection />
+            <ContactSection />
+            <Footer />
+          </main>
+        ) : !isAdminAuthenticated ? (
+          <AdminLoginModal />
+        ) : (
+          <AdminLayout>
+            {activeAdminTab === 'dashboard' && <AdminDashboard />}
+            {activeAdminTab === 'services' && <ServicesSection />}
+            {activeAdminTab === 'portfolio' && <PortfolioManager />}
+            {activeAdminTab === 'categories' && <CategoryManager />}
+            {activeAdminTab === 'bookings' && <BookingsManager />}
+            {activeAdminTab === 'testimonials' && <TestimonialsManager />}
+            {activeAdminTab === 'messages' && <MessagesManager />}
+            {activeAdminTab === 'content' && <WebsiteContentManager />}
+            {activeAdminTab === 'trash' && <TrashManager />}
+            {activeAdminTab === 'analytics' && <AnalyticsView />}
+            {activeAdminTab === 'settings' && <SettingsView />}
+          </AdminLayout>
+        )}
+
+        {/* Global Modals */}
+        <ProjectLightbox />
+        <BookingModal />
+        <AddEditProjectModal />
+      </div>
     </div>
   );
 };

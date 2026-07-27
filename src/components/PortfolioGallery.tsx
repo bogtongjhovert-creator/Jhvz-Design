@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { PortfolioItem } from '../types';
 import {
@@ -187,12 +188,19 @@ export const PortfolioGallery: React.FC = () => {
 
         {/* Dynamic Portfolio Grid */}
         {filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((item) => (
-              <div
-                key={item.id}
-                className="group glass-panel glass-panel-hover rounded-2xl overflow-hidden flex flex-col justify-between"
-              >
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {filteredProjects.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                  transition={{ duration: 0.35, delay: idx * 0.05 }}
+                  whileHover={{ y: -6 }}
+                  className="group glass-panel glass-panel-hover rounded-2xl overflow-hidden flex flex-col justify-between"
+                >
                 {/* Media Thumbnail Container */}
                 <div
                   onClick={() => handleCardClick(item)}
@@ -319,9 +327,10 @@ export const PortfolioGallery: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </AnimatePresence>
+        </motion.div>
         ) : (
           /* Empty Search State */
           <div className="text-center py-20 glass-panel rounded-3xl max-w-xl mx-auto space-y-4">

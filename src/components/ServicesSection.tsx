@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { Palette, Layout, Video, Globe, CheckCircle2, ArrowRight } from 'lucide-react';
 
@@ -18,7 +19,13 @@ export const ServicesSection: React.FC = () => {
   return (
     <section id="services-section" className="py-20 border-t border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        <div className="text-center max-w-2xl mx-auto space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-2xl mx-auto space-y-3"
+        >
           <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
             Design Capabilities
           </span>
@@ -28,13 +35,18 @@ export const ServicesSection: React.FC = () => {
           <p className="text-sm text-white/60 font-light">
             From brand identity and printed marketing materials to motion graphics and web UI/UX.
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((srv) => (
-            <div
+          {services.map((srv, idx) => (
+            <motion.div
               key={srv.id}
-              className="glass-panel glass-panel-hover rounded-2xl p-6 flex flex-col justify-between group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              whileHover={{ y: -8 }}
+              className="glass-panel glass-panel-hover rounded-2xl p-6 flex flex-col justify-between group cursor-pointer"
             >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-xl glass-pill flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
@@ -61,8 +73,8 @@ export const ServicesSection: React.FC = () => {
                     Deliverables:
                   </p>
                   <ul className="space-y-1.5 text-xs text-white/80">
-                    {srv.deliverables.map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-2">
+                    {srv.deliverables.map((item, dIdx) => (
+                      <li key={dIdx} className="flex items-center gap-2">
                         <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                         <span>{item}</span>
                       </li>
@@ -74,13 +86,13 @@ export const ServicesSection: React.FC = () => {
               <div className="pt-6">
                 <button
                   onClick={() => openBookingModalWithProject()}
-                  className="w-full glass-panel hover:bg-indigo-600 hover:border-indigo-500 hover:text-white text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
+                  className="w-full glass-panel hover:bg-indigo-600 hover:border-indigo-500 hover:text-white text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 group/btn cursor-pointer"
                 >
                   <span>Book This Service</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                 </button>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
