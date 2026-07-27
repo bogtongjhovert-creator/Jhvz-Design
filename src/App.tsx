@@ -3,7 +3,6 @@ import { PortfolioProvider, usePortfolio } from './context/PortfolioContext';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { PortfolioGallery } from './components/PortfolioGallery';
-import { MotionGraphicsShowcase } from './components/MotionGraphicsShowcase';
 import { ServicesSection } from './components/ServicesSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { ContactSection } from './components/ContactSection';
@@ -42,7 +41,6 @@ const MainContent: React.FC = () => {
           <main className="flex-1">
             <HeroSection />
             <PortfolioGallery />
-            <MotionGraphicsShowcase />
             <ServicesSection />
             <TestimonialsSection />
             <ContactSection />
