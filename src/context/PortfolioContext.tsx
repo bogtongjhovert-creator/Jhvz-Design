@@ -190,7 +190,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [websiteContent, setWebsiteContent] = useState<WebsiteContent>(() => {
     try {
       const saved = localStorage.getItem('jhvz_content');
-      return saved ? JSON.parse(saved) : INITIAL_WEBSITE_CONTENT;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.address && (parsed.address.includes('Manila') || parsed.address.includes('Panpacific'))) {
+          parsed.address = 'San Manuel, Pangasinan, Philippines';
+        }
+        return parsed;
+      }
+      return INITIAL_WEBSITE_CONTENT;
     } catch {
       return INITIAL_WEBSITE_CONTENT;
     }
@@ -390,7 +397,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       doc(db, 'content', 'main'),
       (docSnap) => {
         if (docSnap.exists()) {
-          setWebsiteContent(docSnap.data() as WebsiteContent);
+          const data = docSnap.data() as WebsiteContent;
+          if (data.address && (data.address.includes('Manila') || data.address.includes('Panpacific'))) {
+            data.address = 'San Manuel, Pangasinan, Philippines';
+            // Auto update Firestore record with the new location
+            setDoc(doc(db, 'content', 'main'), data, { merge: true }).catch(() => {});
+          }
+          setWebsiteContent(data);
         }
       },
       (error) => handleFirestoreError(error, OperationType.GET, 'content/main')

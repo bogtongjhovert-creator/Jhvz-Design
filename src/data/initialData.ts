@@ -414,7 +414,7 @@ export const INITIAL_WEBSITE_CONTENT: WebsiteContent = {
   satisfiedClientsCount: 140,
   contactEmail: 'jhovzdesign@gmail.com',
   contactPhone: '+63 912 345 6789',
-  address: 'Manila / Panpacific Studio, Philippines',
+  address: 'San Manuel, Pangasinan, Philippines',
   socialLinks: {
     behance: 'https://behance.net',
     dribbble: 'https://dribbble.com',
