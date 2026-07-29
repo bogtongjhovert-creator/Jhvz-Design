@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { Logo } from '../Logo';
 import {
   LayoutDashboard,
   Briefcase,
@@ -61,13 +62,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       <aside className="w-full md:w-64 bg-zinc-900 border-r border-zinc-800 shrink-0 flex flex-col justify-between">
         <div className="p-5 space-y-6">
           
-          {/* Logo & Status */}
+          {/* Logo & Status Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 p-0.5 shadow-md shadow-indigo-500/20 border border-indigo-400/30">
-                <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center font-black text-indigo-300 text-xs">
-                  CMS
-                </div>
+              <div className="w-9 h-9 rounded-xl bg-indigo-600 p-2 shadow-md shadow-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+                <Logo variant="icon" className="w-4 h-4 text-white" />
               </div>
               <div>
                 <span className="font-extrabold text-white text-sm block tracking-tight">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { Logo } from '../Logo';
 import { ShieldCheck, Lock, Eye, EyeOff, ArrowLeft, KeyRound, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const AdminLoginModal: React.FC = () => {
@@ -30,8 +31,8 @@ export const AdminLoginModal: React.FC = () => {
         
         {/* Header Icon */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl glass-panel border border-indigo-500/40 p-0.5 mx-auto flex items-center justify-center text-indigo-400 shadow-xl shadow-indigo-500/20">
-            <ShieldCheck className="w-8 h-8 text-indigo-400" />
+          <div className="w-16 h-16 rounded-2xl glass-panel border border-indigo-500/40 p-3.5 mx-auto flex items-center justify-center text-indigo-400 shadow-xl shadow-indigo-500/20">
+            <Logo variant="icon" className="w-8 h-8 text-indigo-400" />
           </div>
 
           <div>

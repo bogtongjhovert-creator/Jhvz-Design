@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { usePortfolio } from '../context/PortfolioContext';
+import { ThreeDGlowingTitle } from './ThreeDGlowingTitle';
 import { Sparkles, Calendar, Search, ArrowRight, Layers, Award, Users, Film, Play } from 'lucide-react';
 
 export const HeroSection: React.FC = () => {
@@ -77,15 +78,14 @@ export const HeroSection: React.FC = () => {
             <span>Dynamic Portfolio & Motion Studio CMS</span>
           </motion.div>
 
-          {/* Animated Headline */}
-          <motion.h1
+          {/* 3D Glowing Animated Headline */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]"
           >
-            {websiteContent.heroTitle || 'Crafting Visionary Visuals & Creative Brands'}
-          </motion.h1>
+            <ThreeDGlowingTitle text={websiteContent.heroTitle || 'Crafting Visionary Visuals & Creative Brands'} />
+          </motion.div>
 
           {/* Subtitle */}
           <motion.p

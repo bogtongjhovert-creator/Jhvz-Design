@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 220" fill="none">
+  <g fill="#FFFFFF">
+    <!-- Icon Mark -->
+    <path d="M 0 32 C 0 12 16 0 36 0 L 105 0 L 105 58 L 56 58 L 56 110 L 0 110 Z" />
+
+    <!-- Letter H -->
+    <path d="M 142 0 L 174 0 L 174 40 L 205 40 L 205 0 L 237 0 L 237 110 L 205 110 L 205 70 L 174 70 L 174 110 L 142 110 Z" />
+
+    <!-- Letter V -->
+    <path d="M 262 0 L 295 0 L 324 76 L 353 0 L 386 0 L 341 110 L 307 110 Z" />
+
+    <!-- Letter Z -->
+    <path d="M 402 0 L 490 0 L 490 28 L 442 82 L 490 82 L 490 110 L 402 110 L 402 82 L 450 28 L 402 28 Z" />
+
+    <!-- DESIGN Subtitle -->
+    <text
+      x="0"
+      y="196"
+      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Plus Jakarta Sans', sans-serif"
+      font-weight="900"
+      font-size="54"
+      letter-spacing="0.46em"
+      fill="#FFFFFF"
+    >
+      DESIGN
+    </text>
+  </g>
+</svg>

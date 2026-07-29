@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePortfolio } from '../context/PortfolioContext';
+import { Logo } from './Logo';
 import { LayoutDashboard, Sparkles, Plus, Search, Calendar, MessageSquare, ExternalLink } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -26,18 +27,16 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setViewMode('public')}
-            className="flex items-center gap-3 group text-left focus:outline-none"
+            className="flex items-center gap-3 group text-left focus:outline-none transition-all"
           >
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 p-0.5 shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 group-hover:border-indigo-400/60 transition-all flex items-center justify-center backdrop-blur-md">
-              <span className="font-extrabold text-indigo-400 group-hover:text-white transition-colors text-base tracking-wider">
-                JV
-              </span>
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/40 p-2 shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 group-hover:border-indigo-400/60 transition-all flex items-center justify-center backdrop-blur-md">
+              <Logo variant="icon" className="w-5 h-5 text-indigo-400 group-hover:text-white transition-colors" />
             </div>
             <div>
-              <span className="font-extrabold text-white text-lg tracking-tight group-hover:text-indigo-400 transition-colors">
+              <span className="font-extrabold text-white text-lg tracking-tight group-hover:text-indigo-400 transition-colors block leading-snug">
                 {websiteContent.brandName || 'JHVZ DESIGN'}
               </span>
-              <span className="block text-xs font-medium text-white/50">
+              <span className="block text-[11px] font-medium text-white/50 leading-none">
                 Creative Studio & CMS
               </span>
             </div>

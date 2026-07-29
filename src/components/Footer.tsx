@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePortfolio } from '../context/PortfolioContext';
+import { Logo } from './Logo';
 import { Calendar, Sparkles, Heart } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -12,9 +13,9 @@ export const Footer: React.FC = () => {
           
           {/* Brand Info */}
           <div className="space-y-3 md:col-span-1">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg glass-panel flex items-center justify-center font-bold text-indigo-300 text-xs border border-indigo-400/40">
-                JHVZ
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/40 p-2 flex items-center justify-center text-indigo-400">
+                <Logo variant="icon" className="w-4 h-4 text-indigo-300" />
               </div>
               <span className="font-black text-white text-base tracking-tight">
                 {websiteContent.brandName || 'JHVZ DESIGN'}
